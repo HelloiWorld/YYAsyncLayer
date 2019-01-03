@@ -7,6 +7,8 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		04159A2021DD9FBF0084ACA1 /* YYDispatchQueuePool.h in Headers */ = {isa = PBXBuildFile; fileRef = 04159A1E21DD9FBF0084ACA1 /* YYDispatchQueuePool.h */; };
+		04159A2121DD9FBF0084ACA1 /* YYDispatchQueuePool.m in Sources */ = {isa = PBXBuildFile; fileRef = 04159A1F21DD9FBF0084ACA1 /* YYDispatchQueuePool.m */; };
 		D9767DFD1F04B1B100288559 /* YYAsyncLayer.h in Headers */ = {isa = PBXBuildFile; fileRef = D9767DF71F04B1B100288559 /* YYAsyncLayer.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		D9767DFE1F04B1B100288559 /* YYAsyncLayer.m in Sources */ = {isa = PBXBuildFile; fileRef = D9767DF81F04B1B100288559 /* YYAsyncLayer.m */; };
 		D9767DFF1F04B1B100288559 /* YYSentinel.h in Headers */ = {isa = PBXBuildFile; fileRef = D9767DF91F04B1B100288559 /* YYSentinel.h */; settings = {ATTRIBUTES = (Public, ); }; };
@@ -16,6 +18,8 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		04159A1E21DD9FBF0084ACA1 /* YYDispatchQueuePool.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = YYDispatchQueuePool.h; sourceTree = "<group>"; };
+		04159A1F21DD9FBF0084ACA1 /* YYDispatchQueuePool.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = YYDispatchQueuePool.m; sourceTree = "<group>"; };
 		D9767DEB1F04B17000288559 /* YYAsyncLayer.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = YYAsyncLayer.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		D9767DEF1F04B17000288559 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; name = Info.plist; path = ../Framework/Info.plist; sourceTree = "<group>"; };
 		D9767DF71F04B1B100288559 /* YYAsyncLayer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = YYAsyncLayer.h; sourceTree = "<group>"; };
@@ -58,6 +62,8 @@
 			children = (
 				D9767DF71F04B1B100288559 /* YYAsyncLayer.h */,
 				D9767DF81F04B1B100288559 /* YYAsyncLayer.m */,
+				04159A1E21DD9FBF0084ACA1 /* YYDispatchQueuePool.h */,
+				04159A1F21DD9FBF0084ACA1 /* YYDispatchQueuePool.m */,
 				D9767DF91F04B1B100288559 /* YYSentinel.h */,
 				D9767DFA1F04B1B100288559 /* YYSentinel.m */,
 				D9767DFB1F04B1B100288559 /* YYTransaction.h */,
@@ -75,6 +81,7 @@
 			isa = PBXHeadersBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				04159A2021DD9FBF0084ACA1 /* YYDispatchQueuePool.h in Headers */,
 				D9767DFF1F04B1B100288559 /* YYSentinel.h in Headers */,
 				D9767DFD1F04B1B100288559 /* YYAsyncLayer.h in Headers */,
 				D9767E011F04B1B100288559 /* YYTransaction.h in Headers */,
@@ -149,6 +156,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				D9767DFE1F04B1B100288559 /* YYAsyncLayer.m in Sources */,
+				04159A2121DD9FBF0084ACA1 /* YYDispatchQueuePool.m in Sources */,
 				D9767E001F04B1B100288559 /* YYSentinel.m in Sources */,
 				D9767E021F04B1B100288559 /* YYTransaction.m in Sources */,
 			);

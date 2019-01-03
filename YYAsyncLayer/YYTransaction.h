@@ -32,7 +32,7 @@ NS_ASSUME_NONNULL_BEGIN
  Commit the trancaction to main runloop.
  
  @discussion It will perform the selector on the target once before main runloop's
- current loop sleep. If the same transaction (same target and same selector) has 
+ current loop sleep. If the same transaction (same target and same selector) has
  already commit to runloop in this loop, this method do nothing.
  */
 - (void)commit;

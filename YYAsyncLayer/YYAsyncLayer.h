@@ -29,7 +29,7 @@ NS_ASSUME_NONNULL_BEGIN
 /**
  The YYAsyncLayer class is a subclass of CALayer used for render contents asynchronously.
  
- @discussion When the layer need update it's contents, it will ask the delegate 
+ @discussion When the layer need update it's contents, it will ask the delegate
  for a async display task to render the contents in a background queue.
  */
 @interface YYAsyncLayer : CALayer
@@ -71,7 +71,7 @@ NS_ASSUME_NONNULL_BEGIN
  block param context:      A new bitmap content created by layer.
  block param size:         The content size (typically same as layer's bound size).
  block param isCancelled:  If this block returns `YES`, the method should cancel the
-   drawing process and return as quickly as possible.
+ drawing process and return as quickly as possible.
  */
 @property (nullable, nonatomic, copy) void (^display)(CGContextRef context, CGSize size, BOOL(^isCancelled)(void));
 

@@ -21,6 +21,7 @@
 }
 
 - (int32_t)increase {
+    //使用OSAtomic增加值
     return OSAtomicIncrement32(&_value);
 }
 

@@ -19,7 +19,9 @@
 #endif
 
 /// Global display queue, used for content rendering.
+//全局显示线程，给content渲染用
 static dispatch_queue_t YYAsyncLayerGetDisplayQueue() {
+    //如果存在YYDispatchQueuePool
 #ifdef YYDispatchQueuePool_h
     return YYDispatchQueueGetForQOS(NSQualityOfServiceUserInitiated);
 #else
@@ -29,6 +31,7 @@ static dispatch_queue_t YYAsyncLayerGetDisplayQueue() {
     static dispatch_once_t onceToken;
     static int32_t counter = 0;
     dispatch_once(&onceToken, ^{
+        //处理器数量，最多创建16个serial线程
         queueCount = (int)[NSProcessInfo processInfo].activeProcessorCount;
         queueCount = queueCount < 1 ? 1 : queueCount > MAX_QUEUE_COUNT ? MAX_QUEUE_COUNT : queueCount;
         if ([UIDevice currentDevice].systemVersion.floatValue >= 8.0) {
@@ -43,6 +46,7 @@ static dispatch_queue_t YYAsyncLayerGetDisplayQueue() {
             }
         }
     });
+    //循环获取相应的线程
     int32_t cur = OSAtomicIncrement32(&counter);
     if (cur < 0) cur = -cur;
     return queues[(cur) % queueCount];
@@ -50,6 +54,7 @@ static dispatch_queue_t YYAsyncLayerGetDisplayQueue() {
 #endif
 }
 
+//释放线程
 static dispatch_queue_t YYAsyncLayerGetReleaseQueue() {
 #ifdef YYDispatchQueuePool_h
     return YYDispatchQueueGetForQOS(NSQualityOfServiceDefault);
@@ -64,6 +69,7 @@ static dispatch_queue_t YYAsyncLayerGetReleaseQueue() {
 
 
 @implementation YYAsyncLayer {
+    //计数，用于取消异步绘制
     YYSentinel *_sentinel;
 }
 
@@ -94,11 +100,13 @@ static dispatch_queue_t YYAsyncLayerGetReleaseQueue() {
     [_sentinel increase];
 }
 
+/// 需要重新渲染的时候，取消原来没有完成的异步渲染
 - (void)setNeedsDisplay {
     [self _cancelAsyncDisplay];
     [super setNeedsDisplay];
 }
 
+/// 重写展示的方法，设置contents内容
 - (void)display {
     super.contents = super.contents;
     [self _displayAsync:_displaysAsynchronously];
@@ -107,8 +115,11 @@ static dispatch_queue_t YYAsyncLayerGetReleaseQueue() {
 #pragma mark - Private
 
 - (void)_displayAsync:(BOOL)async {
+    // 获取delegate对象，这边默认是CALayer的delegate，持有它的UIView
     __strong id<YYAsyncLayerDelegate> delegate = (id)self.delegate;
+    // delegate的初始化方法
     YYAsyncLayerDisplayTask *task = [delegate newAsyncDisplayTask];
+    // 没有展示block，就直接调用其他两个block返回
     if (!task.display) {
         if (task.willDisplay) task.willDisplay(self);
         self.contents = nil;
@@ -116,10 +127,13 @@ static dispatch_queue_t YYAsyncLayerGetReleaseQueue() {
         return;
     }
     
+    // 异步
     if (async) {
         if (task.willDisplay) task.willDisplay(self);
+        // 获取计数
         YYSentinel *sentinel = _sentinel;
         int32_t value = sentinel.value;
+        // 用计数判断是否已经取消
         BOOL (^isCancelled)(void) = ^BOOL() {
             return value != sentinel.value;
         };
@@ -127,26 +141,35 @@ static dispatch_queue_t YYAsyncLayerGetReleaseQueue() {
         BOOL opaque = self.opaque;
         CGFloat scale = self.contentsScale;
         CGColorRef backgroundColor = (opaque && self.backgroundColor) ? CGColorRetain(self.backgroundColor) : NULL;
+        // 长宽<1,直接清除contents内容
         if (size.width < 1 || size.height < 1) {
+            //获取contents内容
             CGImageRef image = (__bridge_retained CGImageRef)(self.contents);
+            //清除内容
             self.contents = nil;
+            // 如果有图片 就release图片
             if (image) {
-                dispatch_async(YYAsyncLayerGetReleaseQueue(), ^{
+                dispatch_async(YYAsyncLayerGetReleaseQueue(), ^{ // 获取release副线程队列
                     CFRelease(image);
                 });
             }
+            //已经展示完成block，finish为yes
             if (task.didDisplay) task.didDisplay(self, YES);
             CGColorRelease(backgroundColor);
             return;
         }
         
+        // 异步线程调用
         dispatch_async(YYAsyncLayerGetDisplayQueue(), ^{
+            // 是否取消
             if (isCancelled()) {
                 CGColorRelease(backgroundColor);
                 return;
             }
+            // 创建core Graphic context
             UIGraphicsBeginImageContextWithOptions(size, opaque, scale);
             CGContextRef context = UIGraphicsGetCurrentContext();
+            //返回context进行展示
             if (opaque) {
                 CGContextSaveGState(context); {
                     if (!backgroundColor || CGColorGetAlpha(backgroundColor) < 1) {
@@ -170,26 +193,35 @@ static dispatch_queue_t YYAsyncLayerGetReleaseQueue() {
                 });
                 return;
             }
+            //获取当前画布
             UIImage *image = UIGraphicsGetImageFromCurrentImageContext();
+            //结束context
             UIGraphicsEndImageContext();
+            //如果取消停止渲染
             if (isCancelled()) {
                 dispatch_async(dispatch_get_main_queue(), ^{
                     if (task.didDisplay) task.didDisplay(self, NO);
                 });
                 return;
             }
+            //返回主线程
             dispatch_async(dispatch_get_main_queue(), ^{
+                //如果取消，停止渲染
                 if (isCancelled()) {
                     if (task.didDisplay) task.didDisplay(self, NO);
                 } else {
+                    //主线程设置contents内容进行展示
                     self.contents = (__bridge id)(image.CGImage);
+                    //已经展示完成block，finish为yes
                     if (task.didDisplay) task.didDisplay(self, YES);
                 }
             });
         });
     } else {
+        //同步展示，直接increase，停止异步展示
         [_sentinel increase];
         if (task.willDisplay) task.willDisplay(self);
+        //直接创建Core Graphic bitmap context
         UIGraphicsBeginImageContextWithOptions(self.bounds.size, self.opaque, self.contentsScale);
         CGContextRef context = UIGraphicsGetCurrentContext();
         if (self.opaque) {
@@ -212,6 +244,7 @@ static dispatch_queue_t YYAsyncLayerGetReleaseQueue() {
         task.display(context, self.bounds.size, ^{return NO;});
         UIImage *image = UIGraphicsGetImageFromCurrentImageContext();
         UIGraphicsEndImageContext();
+        //进行展示
         self.contents = (__bridge id)(image.CGImage);
         if (task.didDisplay) task.didDisplay(self, YES);
     }
